@@ -11,7 +11,7 @@ BerryCatcher is a game where players control their favorite Pokémon as they das
 - **Character Selection**: Choose between Minun or Plusle as your player icon
 - **Dash Ability**: Execute powerful dashes by pressing **Space** while holding **Left** or **Right** arrow keys
 - **Lingering Hitbox**: The dash ability features a lingering hitbox that allows you to collect berries even after the dash animation completes
-- **Berry Collection**: Race against the clock to collect as many berries as possible
+- **Berry Collection**: Catch all of the berries on the screen or you will lose lives!
 
 ## How to Play
 
