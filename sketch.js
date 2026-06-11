@@ -444,7 +444,6 @@ function makePowerUp(){
 function drawPowerUp(){
   if(stage>=5 && !powerUpCollected){
     image(powerUp.img[0],powerUp.x,powerUp.y,powerUp.size,powerUp.size)
-  }
   if(powerUp.y-powerUp.size<height){
   powerUp.y+=powerUp.spy
 }
@@ -457,6 +456,7 @@ function drawPowerUp(){
     dash.amount=2
     dash.cooldown=0
   }
+}
 }
 function powerDetection(){
   let xOverlap=powerUp.x<player.x+player.size && player.x+50<powerUp.x+powerUp.size
