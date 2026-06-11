@@ -12,6 +12,9 @@ let player={x:300,y:450,sp:12,size:150,img: null}
 let directionFacing="none"
 let dash={distance:200,h:400,cooldown:0,ToE:0,amount:2,active:"none",x:null}
 let spacePressed=false
+let powerUp={x:0,y:0,spx:0,spy:0,size:70,img:[],amount:1}
+let powerUpSpawned = false
+let powerUpCollected = false
 
 //Declare the image variables to be assigned as images in preload
 let gbg;
@@ -20,6 +23,7 @@ let lum;
 let mago;
 let oran;
 let sitrus;
+let rarecandy;
 
 //Load in all of the images
 function preload(){
@@ -32,12 +36,14 @@ function preload(){
   minun=loadImage('IMG_1188.png')
   plusle=loadImage('IMG_1189.png')
   lightning=loadImage('fahh.png')
+  rarecandy=loadImage('rarecandy.png')
 }
 
 //Make the berries before the game begins
 function setup() {
   createCanvas(600, 600);
   makeBerries()
+  makePowerUp()
 }
 
 //Function draw only needs the gamestate and the click states
@@ -61,7 +67,6 @@ function draw(){
     else if (gameState == "choose"){
       chooseScreen()
     }
-
   clickState=false //Ensure the clickstates stay false so that holding click does not cause multiple inputs
   spacePressed=false
 }
@@ -105,6 +110,7 @@ function gameScreen(){
   drawBerries()
   drawPlayer()
   dashing()
+  drawPowerUp()
   homeButton()
   //Make conditions to transition to each game screen
   if(lives<=0){
@@ -178,7 +184,7 @@ function guideScreen(){
   background(bg)
   noStroke()
   fill(255)
-  rect(width/2-120,height/2-290,250,370)
+  rect(width/2-120,height/2-290,250,400)
   textSize(15)
   fill(0)
   text("Collect berries and don't let berries", width/2-115,30)
@@ -199,6 +205,8 @@ function guideScreen(){
   text("move.",width/2-115,330)
   text("Hold the movement keys and press",width/2-115,350)
   text("spacebar for a dash!", width/2-115,370)
+  image(powerUp.img[0],width/2-120,370,40,40)
+  text("Rare candies give a power up!",width/2-80,395)
   fill(255)
   rect(width/2-100,height/2+150,button.w,button.h)
   textSize(36)
@@ -214,6 +222,7 @@ function stageUp(){
      stage++
     amount=stage*3
     makeBerries()
+    makePowerUp()
      }
 }
 
@@ -327,11 +336,13 @@ function detectCollision(i){ //Function for player berry collisions
   }
 function resetGame(){
   berries={x:[],y:[],sp:[],size:[],type:[],img:[]}
+  powerUp={x:0,y:0,spx:0,spy:0,size:70,img:[],amount:1}
       lives=7
   score=0
   stage=1
   amount=3
   makeBerries()
+  makePowerUp()
   dash.cooldown=0
   dash.amount=2
   player.x=300
@@ -344,16 +355,26 @@ function dashing(){ //Dash function
   if(dash.cooldown<0){ //Debug the code so that no negative numbers can show up as the dash cooldown
     dash.cooldown=0
   }
-  if(dash.cooldown==0 && dash.amount<2){ //Allow for the cooldown of dashes to continue so that all of the dash charges can refresh
+  else if(dash.cooldown==0 && dash.amount<2){ //Allow for the cooldown of dashes to continue so that all of the dash charges can refresh
     dash.amount++
+    if(powerUpCollected){
+      dash.cooldown=1500
+    }
+    else{
     dash.cooldown=3000 
+    }
   }
   if(dash.amount==2){
     dash.cooldown=0
   }
   if(player.x+player.size < 600-dash.distance && directionFacing=="Right" && keyIsDown(32) && dash.amount>0 && spacePressed){ //Conditions for a dash to occur: the player needs to hold down an arrow key for a direction, they need to be within bounds, and the need to be pressing spacebar. The spacePressed variable ensures that holding down space bar does not cause multiple dashes to occur at once
     player.x=player.x+dash.distance
-    dash.cooldown=3000
+        if(powerUpCollected){
+    dash.cooldown=1500
+    }
+    else{
+    dash.cooldown=3000 
+    }
     dash.amount--
     dash.active="right"
     dash.ToE=500
@@ -364,7 +385,12 @@ function dashing(){ //Dash function
   }
   if (player.x>0 && directionFacing=="Left" && keyIsDown(32) && dash.amount>0 && spacePressed){ //Repeat the same dash function as the right one but this time just make it so that the dash decreases the player's x coordinate
       player.x=player.x-dash.distance  
-    dash.cooldown=3000
+    if(powerUpCollected){
+      dash.cooldown=1500
+    }
+    else{
+    dash.cooldown=3000 
+    }
     dash.amount--
       rect(player.x,450,50,dash.distance)
     dash.active="left"
@@ -405,6 +431,37 @@ function dashCollision(i){ //Make a dash collision system
   let dyOverlap=berries.y[i]<player.y+player.size && player.y<berries.y[i]+berries.size[i]
   return dxOverlap && dyOverlap
   }
+}
+function makePowerUp(){
+  for(let i=0;i<powerUp.amount;i++){
+  powerUp.x=(random(0,600-powerUp.size))
+  powerUp.y=(random(-70,0))
+  powerUp.img.push(rarecandy)
+  powerUp.spx=(random(-20,20))
+    powerUp.spy=(random(14,16))
+  }
+}
+function drawPowerUp(){
+  if(stage>=5 && !powerUpCollected){
+    image(powerUp.img[0],powerUp.x,powerUp.y,powerUp.size,powerUp.size)
+  }
+  if(powerUp.y-powerUp.size<height){
+  powerUp.y+=powerUp.spy
+}
+  powerUp.x+=powerUp.spx
+  if(powerUp.x+powerUp.size>width || powerUp.x<=0){
+    powerUp.spx*=-1
+  }
+  if(powerDetection()){
+    powerUpCollected=true
+    dash.amount=2
+    dash.cooldown=0
+  }
+}
+function powerDetection(){
+  let xOverlap=powerUp.x<player.x+player.size && player.x+50<powerUp.x+powerUp.size
+  let yOverlap=powerUp.y<player.y+80 && player.y<powerUp.y+powerUp.size
+  return xOverlap && yOverlap
 }
 //Source for Images:
 //All artwork of berries and player characters are under the Pokemon Franchise
